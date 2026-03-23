@@ -110,7 +110,7 @@ fi
 #--logging.level.org.springframework.batch=DEBUG
 if [[ "$APP_DEBUG" == "true" ]]; then
   ARGS+=("--logging.level.org.springframework.batch=DEBUG")
-  ARGS+=("--logging.level.com.bnk.files.dedup=DEBUG")
+  ARGS+=("--logging.level.com.sars.files.dedup=DEBUG")
 fi
 
 if [[ -n "${TABLES_FILE}" ]]; then

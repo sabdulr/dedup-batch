@@ -30,7 +30,7 @@
     </appender>
 
     <logger name="org.springframework.batch" level="INFO"/>
-    <logger name="com.bnk.files.dedup" level="INFO"/>
+    <logger name="com.sars.files.dedup" level="INFO"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>

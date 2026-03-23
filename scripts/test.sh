@@ -57,6 +57,21 @@ function log() {
 
 }
 
+#create_mock_data_scr() {
+#    log "INFO" "Creating 2-batch-mock-data.sh ..."
+#    local table_name="$1"
+#
+#    for ((delta=0; delta<DAYS; delta++)); do
+#        run_date=$(date -d "$FROM_DATE +$delta days" +"%Y-%m-%d")
+#		
+#        echo "echo \"Running table: ${table_name}, date: ${run_date}\"" >> "${MOCK_DATA_SCRIPT}"
+#        echo "${SCRIPT_DIR}/generate-mock-data.sh ${table_name} ${run_date} ${RECORDS} ${INPUT_DIR}/${run_date}/${table_name}" >> "${MOCK_DATA_SCRIPT}"
+#    done
+#	
+#	echo "" >> "${MOCK_DATA_SCRIPT}"
+#}
+
+
 function create_mock_data_scr() {
 	local run_date=$1
 
@@ -156,11 +171,31 @@ tables_list=("account" "accountaccesstype" "accountbalance" "accountdormancystat
 date_list=()
 # 2. Loop through a sequence of items (e.g., numbers)
 for ((delta=0; delta<DAYS; delta++)); do
+  # Perform some action, e.g., create a string with the current value
+  #new_value="item_$i"
   run_date=$(date -d "$FROM_DATE +$delta days" +"%Y-%m-%d")
   
+  # 3. Append the new value to the array
   date_list+=("$run_date")
   run_date=""
 done
+
+#echo "Looping through date list:"
+#for dt in "${date_list[@]}"; do
+  #echo "* $dt"
+  #for table in "${tables_list[@]}"; do
+  #	  echo "Create Table Script for $table : $dt"
+  #done
+#	create_mock_data_scr "${dt}" 
+#done
+
+# Loop through the array elements
+#for table in "${tables_list[@]}"; do
+#  create_mock_data_scr "$table"
+#done
+
+#exit 0
+
 
 ##################
 if [[ -f ${MOCK_DATA_SCRIPT} ]]; then
@@ -171,11 +206,13 @@ fi
 echo "#!/bin/bash" > "${MOCK_DATA_SCRIPT}"
 echo "" >> "${MOCK_DATA_SCRIPT}"
 
+# Loop through the array elements
+#for table in "${tables_list[@]}"; do
+#  create_mock_data_scr "$table"
+#done
 echo "Looping through date list:"
 for dt in "${date_list[@]}"; do
         create_mock_data_scr "${dt}"
-	echo "echo \"ready!\" > ${INPUT_DIR}/${dt}/${dt}.ready"  >> "${MOCK_DATA_SCRIPT}"
-	echo " "  >> "${MOCK_DATA_SCRIPT}"
 done
 
 
@@ -192,22 +229,21 @@ echo "" >> ${BATCH_RUN_SCRIPT}
 echo "touch ${GEN_SCR_DIR}/running.lock" >> ${BATCH_RUN_SCRIPT}
 
 
-run_args_base="PROFILE=${PROFILE}  APP_DEBUG=${APP_DEBUG} INPUT_DIR=${INPUT_DIR}  OUTPUT_DIR=${OUTPUT_DIR} WORK_DIR=${WORK_DIR}  LOOKBACK_DAYS=${LOOKBACK_DAYS} TABLES_FILE=${TABLES_FILE}"
+run_args_base="PROFILE=${PROFILE}  APP_DEBUG=${APP_DEBUG} INPUT_DIR=${INPUT_DIR}  OUTPUT_DIR=${OUTPUT_DIR} WORK_DIR=${WORK_DIR}  LOOKBACK_DAYS=${LOOKBACK_DAYS} TABLES_FILE=${TABLE_FILES}"
 
 echo "" >> ${BATCH_RUN_SCRIPT}
 
-run_date=""
-first_line="false"
-
-for run_date in "${date_list[@]}"; do
+for((delta=0;delta<$DAYS;delta++))
+do
 	run_args=""
 
-	if [[ "${FIRST_RUN}" == "true" ]]; then
-		if [[ "$first_line" == "true" ]]; then
+	run_date=$(date -d "$FROM_DATE +$delta days" +"%Y-%m-%d")
+
+	if [[ "${INIT}" == "true" ]]; then
+		if [[ $delta -gt 0 ]]; then
 			run_args="$run_args_base SPRING_BATCH_INIT_SCHEMA=never"
 		else
 			run_args="$run_args_base SPRING_BATCH_INIT_SCHEMA=always"
-			first_line="true"
 		fi
 	else
 		run_args="$run_args_base SPRING_BATCH_INIT_SCHEMA=never"

@@ -71,7 +71,7 @@ app:
       - Source.Table
       - ChangeData.ChangeDateTime
       - Data._creationdate
-    bnk_plastichistory:
+    sars_plastichistory:
       - ChangeData.id
       - Source.Table
       - ChangeData.ChangeDateTime

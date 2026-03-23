@@ -44,7 +44,7 @@ Prior-day input files are never modified.
 Main application class:
 
 ```text
-com.bnk.dedup.DedupApplication
+com.sars.dedup.DedupApplication
 ```
 
 The application is batch-only:
@@ -65,7 +65,7 @@ Examples:
 ```text
 account-2026-03-11-1.json
 award-2026-03-11-2.json
-bnk_plastichistory-2026-03-11-25.json
+sars_PlasticHistory-2026-03-11-25.json
 ```
 
 `#` is a positive sequence number (`1`, `2`, `3`, ...).
@@ -167,7 +167,7 @@ app:
     - accountbalance
     - accounthistory
     - award
-    - bnk_plastichistory
+    - sars_PlasticHistory
 ```
 
 To add a table, add another entry to the list.
@@ -182,7 +182,7 @@ account
 accountbalance
 accounthistory
 award
-bnk_plastichistory
+sars_PlasticHistory
 ```
 
 To add a table, add a new line.
@@ -203,8 +203,8 @@ input/
       account-2026-03-11-2.json
     award/
       award-2026-03-11-1.json
-    bnk_plastichistory/
-      bnk_plastichistory-2026-03-11-1.json
+    sars_PlasticHistory/
+      sars_PlasticHistory-2026-03-11-1.json
 ```
 
 Example marker state during processing:
@@ -327,7 +327,7 @@ Examples:
 ```text
 output/account/2026-03-11/MERGED=account-2026-03-11.json
 output/award/2026-03-11/MERGED=award-2026-03-11.json
-output/bnk_plastichistory/2026-03-11/MERGED=bnk_plastichistory-2026-03-11.json
+output/sars_PlasticHistory/2026-03-11/MERGED=sars_PlasticHistory-2026-03-11.json
 ```
 
 The job writes temp files first, then publishes merged outputs. Output folders are only created for tables that actually produce merged output.
@@ -365,7 +365,7 @@ Example:
 ```text
 account,MERGED=account-2026-03-11.json,3
 award,MERGED=award-2026-03-11.json,0
-bnk_plastichistory,MERGED=bnk_plastichistory-2026-03-11.json,0
+sars_PlasticHistory,MERGED=sars_PlasticHistory-2026-03-11.json,0
 ```
 
 This file is only written after the job finishes with `COMPLETED`.
@@ -513,7 +513,7 @@ spring:
       platform: h2
 
   datasource:
-    url: jdbc:h2:file:./work/batch-meta;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+     url: jdbc:h2:file:${BATCH_META_PATH:./work/dev/batch-meta};DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa
     password:
     driver-class-name: org.h2.Driver
