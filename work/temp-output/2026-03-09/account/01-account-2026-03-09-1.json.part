@@ -1,0 +1,2 @@
+{"Source":{"Table":"account","System":"CORE"},"ChangeData":{"ChangeDateTime":"2026-03-09T10:00:00Z","Operation":"UPSERT"},"Data":{"_creationdate":"2026-03-09T09:59:50Z","accountId":"A102","status":"OPEN","balanceBand":"HIGH"}}
+{"Source":{"Table":"account","System":"CORE"},"ChangeData":{"ChangeDateTime":"2026-03-09T11:30:00Z","Operation":"UPSERT"},"Data":{"_creationdate":"2026-03-09T11:29:57Z","accountId":"A103","status":"LOCKED","balanceBand":"LOW"}}

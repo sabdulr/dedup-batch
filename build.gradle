@@ -1,0 +1,59 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.0.3'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.bnk'
+version = '1.0.0'
+
+description = 'Restartable Spring Batch NDJSON de-duplication job'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+def osName = System.getProperty('os.name').toLowerCase(Locale.ROOT)
+def rocksClassifier =
+        osName.contains('win') ? 'win64' :
+                osName.contains('linux') ? 'linux64' :
+                        osName.contains('mac') ? 'osx' :
+                                null
+
+if (rocksClassifier == null) {
+    throw new GradleException("Unsupported OS for RocksDB JNI: ${System.getProperty('os.name')}")
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-batch-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-json'
+
+    implementation "org.rocksdb:rocksdbjni:10.4.2:${rocksClassifier}"
+
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'com.h2database:h2'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-batch-jdbc-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

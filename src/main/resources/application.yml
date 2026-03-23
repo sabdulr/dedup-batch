@@ -1,0 +1,78 @@
+spring:
+  application:
+    name: dedup-batch
+
+  server:
+    port: 8080
+
+  main:
+    banner-mode: console
+
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      #initialize-schema: never
+      initialize-schema: always
+      platform: h2
+      schema: classpath:org/springframework/batch/core/schema-h2.sql
+
+  datasource:
+    #url: jdbc:h2:file:./work/batch-meta;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:file:${BATCH_META_PATH:./work/dev/batch-meta};DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: false
+
+logging:
+  config: classpath:logback-spring.xml
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+app:
+  run-mode: restart
+  overwrite-output: true
+  chunk-size: 1000
+  grid-size: 4
+  task-queue-capacity: 1000
+  skip-malformed-json: true
+  progress-log-interval: 100000
+
+  ready-file-extension: .ready
+  running-file-extension: .loading
+  success-file-extension: .loaded
+  fail-file-extension: .fail
+
+  completed-file-folder: triggerFile
+  completed-file-extension: .trg
+
+  uniqueness-fields:
+    - ChangeData.id
+    - Source.Table
+    - ChangeData.ChangeDateTime
+    - Data._creationdate
+
+  table-uniqueness-fields:
+    account:
+    - ChangeData.id
+    - Source.Table
+    - ChangeData.ChangeDateTime
+    - Data._creationdate
+    award:
+      - ChangeData.id
+      - Source.Table
+      - ChangeData.ChangeDateTime
+      - Data._creationdate
+    bnk_plastichistory:
+      - ChangeData.id
+      - Source.Table
+      - ChangeData.ChangeDateTime
+      - Data._creationdate

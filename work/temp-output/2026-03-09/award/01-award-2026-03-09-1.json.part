@@ -1,0 +1,1 @@
+{"Source":{"Table":"award","System":"CORE"},"ChangeData":{"ChangeDateTime":"2026-03-09T15:00:00Z","Operation":"UPSERT"},"Data":{"_creationdate":"2026-03-09T14:59:58Z","accountId":"A100","awardCode":"WELCOME100","points":100}}
