@@ -23,7 +23,7 @@ TABLES_FILE=${APP_DIR}/config/tables.txt
 
 GEN_SCR_DIR=${SCRIPT_DIR}/generated
 
-MOCK_DATA_SCRIPT=${GEN_SCR_DIR}/2-batch-mock-data.sh
+MOCK_DATA_SCRIPT=${GEN_SCR_DIR}/1-batch-mock-data.sh
 BATCH_RUN_SCRIPT=${GEN_SCR_DIR}/2-batch-load.sh
 
 if [[ ! -d ${INPUT_DIR} ]]; then
@@ -63,7 +63,12 @@ function create_mock_data_scr() {
 	log "INFO" "Creating 2-batch-mock-data.sh for $run_date"
 
 	for table in "${tables_list[@]}"; do
-		echo "Create Table Script for $table : $run_date"
+		if [[ "${gen}" == "rand" ]]; then
+			RECORDS=$((250000 + RANDOM % 400000))
+		fi
+
+		echo "Create Table Script for $table : $run_date : ${RECORDS}"
+
 		echo "${SCRIPT_DIR}/generate-mock-data.sh ${table} ${run_date} ${RECORDS} ${INPUT_DIR}/${run_date}/${table}" >> "${MOCK_DATA_SCRIPT}"
 	done
 
@@ -130,6 +135,11 @@ do
   esac
 done
 
+gen=""
+if [[ "$RECORDS" == "rand" ]]; then
+	gen="rand"
+	RECORDS=$((200000 + RANDOM % 400000))
+fi
 
 log "INFO" "-------------"
 log "INFO" "FROM_DATE: $FROM_DATE"
@@ -179,7 +189,7 @@ for dt in "${date_list[@]}"; do
 done
 
 
-chmod +x ${SCRIPT_DIR}/generated/2-batch-mock-data.sh
+chmod +x ${SCRIPT_DIR}/generated/1-batch-mock-data.sh
 ###############
 
 if [[ -f ${BATCH_RUN_SCRIPT} ]]; then
@@ -220,7 +230,7 @@ for run_date in "${date_list[@]}"; do
 	echo "" >> ${BATCH_RUN_SCRIPT}
 done
 
-echo "rm ${BATCH_RUN_SCRIPT}/running.lock" >> ${BATCH_RUN_SCRIPT}
+echo "rm ${GEN_SCR_DIR}/running.lock" >> ${BATCH_RUN_SCRIPT}
 
 chmod +x ${BATCH_RUN_SCRIPT}
 

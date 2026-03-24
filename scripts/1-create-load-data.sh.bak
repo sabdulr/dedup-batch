@@ -1,0 +1,103 @@
+#!/bin/bash
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_DIR=$(dirname "$SCRIPT_DIR")
+
+FROM_DATE=$(date -d "2026-03-01" "+%Y-%m-%d")
+DAYS=15
+RECORDS=6000000
+
+INIT="${1:-}"
+
+
+PROFILE=prod
+APP_DEBUG=false
+INPUT_DIR=${APP_DIR}/data/input
+OUTPUT_DIR=${APP_DIR}/data/output
+WORK_DIR=${APP_DIR}/data/db-temp/${PROFILE}
+LOOKBACK_DAYS=3
+TABLES_FILE=${APP_DIR}/config/tables.txt
+
+
+echo "FROM_DATE: ${FROM_DATE}"
+echo "DAYS:      ${DAYS}"
+echo " "
+
+if [[ -f ${SCRIPT_DIR}/generated/wrapper-mock-data.sh ]]; then
+	rm -f ${SCRIPT_DIR}/generated/wrapper-mock-data.sh
+fi
+
+mkdir -p ${SCRIPT_DIR}/generated/
+
+echo "Creating wrapper-mock-data.sh ..."
+
+for((delta=0;delta<$DAYS;delta++))
+do
+	run_date=$(date -d "$FROM_DATE +$delta days" +"%Y-%m-%d")
+
+	echo "${SCRIPT_DIR}/generate-mock-data.sh account ${run_date} ${RECORDS} ${INPUT_DIR}/${run_date}/account" >> ${SCRIPT_DIR}/generated/wrapper-mock-data.sh
+	echo "${SCRIPT_DIR}/generate-mock-data.sh accountbalance ${run_date} ${RECORDS} ${INPUT_DIR}/${run_date}/accountbalance" >> ${SCRIPT_DIR}/generated/wrapper-mock-data.sh
+	echo "${SCRIPT_DIR}/generate-mock-data.sh accountaccesstype ${run_date} ${RECORDS} ${INPUT_DIR}/${run_date}/accountaccesstype" >> ${SCRIPT_DIR}/generated/wrapper-mock-data.sh
+	echo "${SCRIPT_DIR}/generate-mock-data.sh accountdormancystatus ${run_date} ${RECORDS} ${INPUT_DIR}/${run_date}/accountdormancystatus" >> ${SCRIPT_DIR}/generated/wrapper-mock-data.sh
+	echo "${SCRIPT_DIR}/generate-mock-data.sh accounthistory ${run_date} ${RECORDS} ${INPUT_DIR}/${run_date}/accounthistory" >> ${SCRIPT_DIR}/generated/wrapper-mock-data.sh
+	echo "${SCRIPT_DIR}/generate-mock-data.sh accountsegment ${run_date} ${RECORDS} ${INPUT_DIR}/${run_date}/accountsegment" >> ${SCRIPT_DIR}/generated/wrapper-mock-data.sh
+	echo "${SCRIPT_DIR}/generate-mock-data.sh activitylogcategory ${run_date} ${RECORDS} ${INPUT_DIR}/${run_date}/activitylogcategory" >> ${SCRIPT_DIR}/generated/wrapper-mock-data.sh
+	echo "${SCRIPT_DIR}/generate-mock-data.sh activitylogtype ${run_date} ${RECORDS} ${INPUT_DIR}/${run_date}/activitylogtype" >> ${SCRIPT_DIR}/generated/wrapper-mock-data.sh
+	echo "${SCRIPT_DIR}/generate-mock-data.sh BNS_PlasticHistory ${run_date} ${RECORDS} ${INPUT_DIR}/${run_date}/bns_plastichistory" >> ${SCRIPT_DIR}/generated/wrapper-mock-data.sh
+	echo "${SCRIPT_DIR}/generate-mock-data.sh award ${run_date} ${RECORDS} ${INPUT_DIR}/${run_date}/award" >> ${SCRIPT_DIR}/generated/wrapper-mock-data.sh
+	
+	echo "touch ${INPUT_DIR}/${run_date}/${run_date}.ready" >> ${SCRIPT_DIR}/generated/wrapper-mock-data.sh
+	
+	echo "" >> ${SCRIPT_DIR}/generated/wrapper-mock-data.sh
+
+done
+
+chmod +x ${SCRIPT_DIR}/generated/wrapper-mock-data.sh
+
+######
+# Create generated/batch-run.sh script here"
+######
+
+if [[ -f ${SCRIPT_DIR}/generated/batch-run.sh ]]; then
+	rm -f ${SCRIPT_DIR}/generated/batch-run.sh
+fi
+
+echo "#!/bin/bash" >> ${SCRIPT_DIR}/generated/batch-run.sh
+echo "" >> ${SCRIPT_DIR}/generated/batch-run.sh
+echo "" >> ${SCRIPT_DIR}/generated/batch-run.sh
+echo "touch ${SCRIPT_DIR}/generated/running.lock" >> ${SCRIPT_DIR}/generated/batch-run.sh
+
+
+run_args_base="PROFILE=${PROFILE}  APP_DEBUG=${APP_DEBUG} INPUT_DIR=${INPUT_DIR}  OUTPUT_DIR=${OUTPUT_DIR} WORK_DIR=${WORK_DIR}  LOOKBACK_DAYS=${LOOKBACK_DAYS} TABLES_FILE=${TABLE_FILES}"
+
+echo "" >> ${SCRIPT_DIR}/generated/batch-run.sh
+
+for((delta=0;delta<$DAYS;delta++))
+do
+	run_args=""
+
+	run_date=$(date -d "$FROM_DATE +$delta days" +"%Y-%m-%d")
+
+	if [[ "${INIT}" == "first" ]]; then
+		if [[ $delta -gt 0 ]]; then
+			run_args="$run_args_base SPRING_BATCH_INIT_SCHEMA=never"
+		else
+			run_args="$run_args_base SPRING_BATCH_INIT_SCHEMA=always"
+		fi
+	else
+		run_args="$run_args_base SPRING_BATCH_INIT_SCHEMA=never"
+	fi
+
+	run_args="$run_args RUN_DATE=${run_date}"
+
+	echo "$run_args ${SCRIPT_DIR}/run.sh" >> ${SCRIPT_DIR}/generated/batch-run.sh
+
+	echo "" >> ${SCRIPT_DIR}/generated/batch-run.sh
+done
+
+echo "rm ${SCRIPT_DIR}/generated/running.lock" >> ${SCRIPT_DIR}/generated/batch-run.sh
+
+chmod +x ${SCRIPT_DIR}/generated/batch-run.sh
+
+exit $?
+
